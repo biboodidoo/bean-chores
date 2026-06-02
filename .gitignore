@@ -1,3 +1,6 @@
 serve.py
 .DS_Store
 .claude/
+data.json
+backups/
+*.tmp

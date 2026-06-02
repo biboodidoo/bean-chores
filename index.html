@@ -277,7 +277,7 @@
     <div class="footer-note">Keep your streak alive — do at least one quest every day! 🌟</div>
   </div>
 
-  <div class="footer-note">Built with ❤️ for Bean · runs offline · data stays on this device</div>
+  <div class="footer-note" id="modeNote">Built with ❤️ for Bean · runs offline · data stays on this device</div>
 </div>
 
 <nav>
@@ -424,22 +424,78 @@
 
   function id() { return "x" + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3); }
 
-  let state = load();
+  let state = defaultState();      // replaced at startup by Store.init()
+  let applyingRemote = false;      // true while adopting a server update (suppresses re-push)
 
-  function load() {
+  // Repair anything malformed from an older/partial save so rendering can't blank out.
+  function heal(s) {
+    const merged = Object.assign(defaultState(), s || {});
+    if (!Array.isArray(merged.chores)) merged.chores = defaultState().chores;
+    if (!Array.isArray(merged.rewards)) merged.rewards = defaultState().rewards;
+    if (!merged.skipped || typeof merged.skipped !== "object" || !Array.isArray(merged.skipped.ids)) merged.skipped = { day: todayStr(), ids: [] };
+    return merged;
+  }
+  function loadLocal() {
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) return defaultState();
-      const s = JSON.parse(raw);
-      const merged = Object.assign(defaultState(), s);
-      // Self-heal anything malformed from an older/partial save so rendering can't blank out.
-      if (!Array.isArray(merged.chores)) merged.chores = defaultState().chores;
-      if (!Array.isArray(merged.rewards)) merged.rewards = defaultState().rewards;
-      if (!merged.skipped || typeof merged.skipped !== "object" || !Array.isArray(merged.skipped.ids)) merged.skipped = { day: todayStr(), ids: [] };
-      return merged;
+      return heal(JSON.parse(raw));
     } catch (e) { return defaultState(); }
   }
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function saveLocal() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+  // ---- Sync layer: one shared board via the LAN server when present, else per-device localStorage ----
+  const Store = {
+    mode: "local",        // becomes "server" when a backend API answers
+    version: 0,
+    pushing: false,
+    pendingPush: false,
+    async init() {
+      try {
+        const r = await fetch("/api/state", { cache: "no-store" });
+        if (r.ok) {
+          const d = await r.json();
+          this.mode = "server";
+          this.version = d.version || 0;
+          return heal(d.state);
+        }
+      } catch (e) {}
+      this.mode = "local";
+      return loadLocal();
+    },
+    save() {
+      if (this.mode === "local") return saveLocal();
+      this._push();
+    },
+    async _push() {
+      if (this.pushing) { this.pendingPush = true; return; }
+      this.pushing = true;
+      try {
+        const r = await fetch("/api/state", {
+          method: "PUT", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ version: this.version, state: state })
+        });
+        if (r.ok) { const d = await r.json(); this.version = d.version; }
+      } catch (e) {}
+      this.pushing = false;
+      if (this.pendingPush) { this.pendingPush = false; this._push(); }
+    },
+    async poll() {
+      if (this.mode !== "server" || this.pushing || this.pendingPush) return;
+      try {
+        const r = await fetch("/api/state", { cache: "no-store" });
+        if (!r.ok) return;
+        const d = await r.json();
+        if (d.version !== this.version) {
+          this.version = d.version;
+          applyingRemote = true;
+          state = heal(d.state);
+          try { render(); } finally { applyingRemote = false; }
+        }
+      } catch (e) {}
+    }
+  };
+  function save() { if (applyingRemote) return; Store.save(); }
 
   // ---- Daily reset: clear "done" flags when a new day begins ----
   function maybeDailyReset() {
@@ -897,15 +953,24 @@
   }
 
   // ---------- Go ----------
-  try {
-    render();
-  } catch (e) {
-    // Never leave a blank screen: show a recovery message instead.
-    const list = $("#choreList");
-    if (list) list.innerHTML = '<div class="empty">Hmm, something didn\'t load right.<br>Try reloading this page — your stars are safe.</div>';
-  }
-  // Re-check daily reset if the tab is left open across midnight
-  setInterval(() => { try { const before = state.lastResetDay; maybeDailyReset(); if (before !== state.lastResetDay) render(); } catch (e) {} }, 60000);
+  (async function start() {
+    try { state = await Store.init(); }
+    catch (e) { state = loadLocal(); }
+    try {
+      render();
+    } catch (e) {
+      // Never leave a blank screen: show a recovery message instead.
+      const list = $("#choreList");
+      if (list) list.innerHTML = '<div class="empty">Hmm, something didn\'t load right.<br>Try reloading this page — your stars are safe.</div>';
+    }
+    // Reflect sync mode in the footer note.
+    const mn = $("#modeNote");
+    if (mn && Store.mode === "server") mn.textContent = "✨ Synced across your family's devices · on your home network";
+    // Live sync: pull shared updates every 2s (no-op in local mode).
+    setInterval(() => { Store.poll(); }, 2000);
+    // Re-check daily reset if the tab is left open across midnight.
+    setInterval(() => { try { const before = state.lastResetDay; maybeDailyReset(); if (before !== state.lastResetDay) render(); } catch (e) {} }, 60000);
+  })();
 })();
 </script>
 </body>

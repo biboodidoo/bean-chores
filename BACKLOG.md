@@ -12,7 +12,7 @@ Running list of requests, feature ideas, issues, and decisions. Captured 2026-06
 
 1. ✅ **DONE (2026-06-02) — Show today's date next to the streak.** Uses device system time, e.g. `🔥 0 day streak · Tue, Jun 2`.
 
-2. **LAN-synced, offline backend — the big one. ← NEXT UP** (Task `child-001`)
+2. ✅ **DONE (2026-06-02) — LAN-synced, offline backend.** (Task `child-001`) Python stdlib server (`server.py`) serves the app + a shared-state API; the app auto-detects the server and syncs all devices on the home Wi-Fi every ~2s, with last-write-wins + a version counter, atomic writes, and rolling backups. Same `index.html` falls back to per-device mode when no server is present. Start with `Start Bean Chores.command`. *Follow-up (optional): auto-start on Mac boot via launchd; later move to an always-on iPhone SE.*
    - Self-hosted family chore board synced across Yiyao's phone, husband's phone, and Bean's iPad over home Wi-Fi. No internet.
    - One shared source of truth (everyone sees the same stars/streak). Swap per-device `localStorage` for a shared server + database with polling/near-real-time sync.
    - **Host on Yiyao's laptop to start** (on most of the time; OK for the board to pause when laptop is off or she's away).
@@ -55,6 +55,7 @@ Running list of requests, feature ideas, issues, and decisions. Captured 2026-06
 - **Hosted on GitHub Pages** (temporary demo for showing Bean).
 - **Today's date next to the streak** (device system time).
 - **Fixed: undo toast was buried under the nav** on mobile and not tappable. Moved to top of screen, allowed wrapping, raised z-index.
+- **LAN multi-device sync backend** (`server.py` + sync layer in the app). One shared board across all home devices, offline, with backups. QA + UAT passed.
 
 ---
 

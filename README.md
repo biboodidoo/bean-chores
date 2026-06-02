@@ -1,9 +1,35 @@
 # Bean's Chore Quest 🦊
 
 A simple, gamified chore tracker for Bean — a free, no-subscription alternative to the Skylight calendar.
-It's a single self-contained HTML file: no install, no account, no backend, works offline. Data lives in the browser on the device, nothing is sent anywhere.
 
-## How to use it
+It runs two ways from the **same** `index.html`:
+- **Solo (default):** open the file or the hosted link — data lives per-device in the browser, nothing sent anywhere.
+- **Family sync (recommended):** run the little server on your Mac and every device on your home Wi-Fi shares ONE board. No internet, no accounts, no cloud.
+
+---
+
+## 🏠 Run it on your home network (multi-device sync)
+
+This is the setup where Bean's iPad, your phone, and your husband's phone all see the same stars and streak, fully offline.
+
+**Start the server (on your Mac):**
+- Double-click **`Start Bean Chores.command`** in this folder. A Terminal window opens and prints the links to use. Keep that window open while the family is using the app.
+  - (The very first time, macOS may ask "Do you want python3 to accept incoming network connections?" — click **Allow**. You may also need to right-click → Open the first time, since it's an unsigned script.)
+- Or from Terminal: `cd` into this folder and run `python3 server.py`.
+
+**Open it on each device (same Wi-Fi):**
+1. In Safari/Chrome go to `http://<your-mac-name>.local:8080` (the start window prints the exact address, e.g. `http://OSXLAP10947.local:8080`, with the IP address as a backup).
+2. Tap **Share → Add to Home Screen** for a full-screen, app-like icon.
+3. Everyone's now on the same board. A change on one device shows on the others within ~2 seconds.
+
+**Notes:**
+- The board is live only while your Mac is awake and running the server. When the Mac is off or away, devices just wait — progress is safe and resumes when it's back.
+- All data lives in `data.json` in this folder (the single source of truth). The server snapshots it into `backups/` on every change (keeps the latest 30).
+- Later you can move the server to an always-on box (e.g. a spare iPhone SE / small computer) so it's up 24/7.
+
+---
+
+## How to use it (solo / per-device)
 
 **On a laptop:** double-click `index.html` — it opens in your browser. That's it.
 
