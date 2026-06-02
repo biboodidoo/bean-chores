@@ -222,7 +222,7 @@
   </header>
 
   <div class="topbar">
-    <div class="streak">🔥 <span id="streak">0</span> day streak</div>
+    <div class="streak">🔥 <span id="streak">0</span> day streak<span style="margin-left:6px;opacity:.6;font-weight:700;">· <span id="todayDate"></span></span></div>
     <div class="coins">⭐ <span id="coins">0</span></div>
   </div>
 
@@ -493,6 +493,7 @@
     $("#levelTitle").textContent = lv.title;
     $("#coins").textContent = state.coins;
     $("#streak").textContent = state.streak;
+    $("#todayDate").textContent = new Date().toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 
     // level bar
     const span = lv.next === null ? 1 : (lv.next - lv.floor);

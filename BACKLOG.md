@@ -10,9 +10,9 @@ Running list of requests, feature ideas, issues, and decisions. Captured 2026-06
 
 ## 🔨 To build / tackle next session
 
-1. **Show today's date next to the streak.** Use the device's own system time (`new Date()`), e.g. `🔥 5 day streak · Mon, Jun 1`. Client-side only, matches each device automatically. *(Quick win.)*
+1. ✅ **DONE (2026-06-02) — Show today's date next to the streak.** Uses device system time, e.g. `🔥 0 day streak · Tue, Jun 2`.
 
-2. **LAN-synced, offline backend — the big one.** (Task `child-001`)
+2. **LAN-synced, offline backend — the big one. ← NEXT UP** (Task `child-001`)
    - Self-hosted family chore board synced across Yiyao's phone, husband's phone, and Bean's iPad over home Wi-Fi. No internet.
    - One shared source of truth (everyone sees the same stars/streak). Swap per-device `localStorage` for a shared server + database with polling/near-real-time sync.
    - **Host on Yiyao's laptop to start** (on most of the time; OK for the board to pause when laptop is off or she's away).
@@ -53,6 +53,8 @@ Running list of requests, feature ideas, issues, and decisions. Captured 2026-06
 - **Swipe right to skip** a quest for the day, with tap-to-undo.
 - **Robustness:** self-healing data loader + startup guard so a stale/partial copy can't blank the screen.
 - **Hosted on GitHub Pages** (temporary demo for showing Bean).
+- **Today's date next to the streak** (device system time).
+- **Fixed: undo toast was buried under the nav** on mobile and not tappable. Moved to top of screen, allowed wrapping, raised z-index.
 
 ---
 
